@@ -1,22 +1,95 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useCarrinho } from "../context/CarrinhoContext";
+
 import Knu1 from "../assets/knu11.png";
 import Knu2 from "../assets/knu12.png";
+import Knu3 from "../assets/knu13.png";
+import Knu4 from "../assets/knu14.png";
 
 export default function Knu() {
-  const [imagemAtual, setImagemAtual] = useState(0);
+  const { adicionarProduto, setMiniCarrinhoAberto } = useCarrinho();
 
-  const imagens = [Knu1, Knu2];
+  const imagens = [Knu1, Knu2, Knu3, Knu4];
+
+  const [indiceVisual, setIndiceVisual] = useState(1);
+  const [animando, setAnimando] = useState(true);
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState(null);
+
+  const bloqueado = useRef(false);
+
+  const imagensCarrossel = [
+    imagens[imagens.length - 1],
+    ...imagens,
+    imagens[0],
+  ];
+
+  const imagemAtual =
+    (indiceVisual - 1 + imagens.length) % imagens.length;
+
+  const produtoKnu = {
+    id: "knu1",
+    nome: "Tênis Knu Skool Stacklite Black White",
+    preco: 699.9,
+  };
 
   function anterior() {
-    setImagemAtual((atual) =>
-      atual === 0 ? imagens.length - 1 : atual - 1
-    );
+    if (bloqueado.current) return;
+
+    bloqueado.current = true;
+    setAnimando(true);
+    setIndiceVisual((atual) => atual - 1);
   }
 
   function proxima() {
-    setImagemAtual((atual) =>
-      atual === imagens.length - 1 ? 0 : atual + 1
-    );
+    if (bloqueado.current) return;
+
+    bloqueado.current = true;
+    setAnimando(true);
+    setIndiceVisual((atual) => atual + 1);
+  }
+
+  function selecionarImagem(index) {
+    if (bloqueado.current || index === imagemAtual) return;
+
+    bloqueado.current = true;
+    setAnimando(true);
+    setIndiceVisual(index + 1);
+  }
+
+  function finalizarTransicao() {
+    if (indiceVisual === imagens.length + 1) {
+      setAnimando(false);
+      setIndiceVisual(1);
+    } else if (indiceVisual === 0) {
+      setAnimando(false);
+      setIndiceVisual(imagens.length);
+    } else {
+      bloqueado.current = false;
+    }
+  }
+
+  useEffect(() => {
+    if (animando) return;
+
+    const primeiroFrame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setAnimando(true);
+        bloqueado.current = false;
+      });
+    });
+
+    return () => cancelAnimationFrame(primeiroFrame);
+  }, [animando]);
+
+  // Adiciona o tênis e abre o carrinho lateral global.
+  function adicionarAoCarrinho() {
+    adicionarProduto(produtoKnu);
+    setMiniCarrinhoAberto(true);
+  }
+
+  // Comprar agora também abre o carrinho lateral.
+  function comprarAgora() {
+    adicionarAoCarrinho();
   }
 
   return (
@@ -24,110 +97,122 @@ export default function Knu() {
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden grid md:grid-cols-2">
 
-          {/* Carrossel de imagens */}
+          {/* GALERIA DE IMAGENS */}
           <div className="bg-gray-50 flex flex-col items-center justify-center p-8">
             <div className="relative w-full max-w-md">
+              <div className="carrossel-janela">
+                <div
+                  className="carrossel-faixa"
+                  style={{
+                    transform: `translateX(-${indiceVisual * 100}%)`,
+                    transition: animando ? undefined : "none",
+                  }}
+                  onTransitionEnd={finalizarTransicao}
+                >
+                  {imagensCarrossel.map((imagem, index) => (
+                    <div
+                      className="carrossel-slide"
+                      key={`${imagem}-${index}`}
+                    >
+                      <img
+                        src={imagem}
+                        alt={`Tênis Knu - imagem ${
+                          ((index - 1 + imagens.length) % imagens.length) + 1
+                        }`}
+                        draggable="false"
+                        className="w-full aspect-square object-contain"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-              <img
-                src={imagens[imagemAtual]}
-                alt={`Tênis Knu - imagem ${imagemAtual + 1}`}
-                className="w-full aspect-square object-contain"
-              />
-
-              {/* Botão anterior */}
+              {/* SETA ESQUERDA */}
               <button
+                type="button"
                 onClick={anterior}
                 aria-label="Imagem anterior"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full w-10 h-10 flex items-center justify-center text-2xl hover:bg-gray-200 transition-colors"
+                className="absolute left-2 top-1/2 -translate-y-1/2
+                bg-white/90 hover:bg-white text-black rounded-full
+                w-10 h-10 flex items-center justify-center
+                text-3xl shadow-md transition"
               >
                 &#8249;
               </button>
 
-              {/* Botão próxima */}
+              {/* SETA DIREITA */}
               <button
+                type="button"
                 onClick={proxima}
                 aria-label="Próxima imagem"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full w-10 h-10 flex items-center justify-center text-2xl hover:bg-gray-200 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2
+                bg-white/90 hover:bg-white text-black rounded-full
+                w-10 h-10 flex items-center justify-center
+                text-3xl shadow-md transition"
               >
                 &#8250;
               </button>
             </div>
 
-            {/* Indicadores do carrossel */}
-            <div className="flex gap-3 mt-4">
+            {/* INDICADORES */}
+            <div className="flex items-center justify-center gap-2 mt-5">
               {imagens.map((imagem, index) => (
                 <button
+                  type="button"
                   key={imagem}
-                  onClick={() => setImagemAtual(index)}
+                  onClick={() => selecionarImagem(index)}
                   aria-label={`Ver imagem ${index + 1}`}
                   aria-current={imagemAtual === index ? "true" : undefined}
-                  className={`w-3 h-3 rounded-full transition-colors ${
+                  className={`rounded-full transition-all duration-300 ${
                     imagemAtual === index
-                      ? "bg-black"
-                      : "bg-gray-300"
+                      ? "w-6 h-2.5 bg-black"
+                      : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-500"
                   }`}
                 />
               ))}
             </div>
-
-            <p className="text-sm text-gray-500 mt-3">
-              {imagemAtual + 1} / {imagens.length}
-            </p>
           </div>
 
-          {/* Informações do produto */}
+          {/* INFORMAÇÕES DO PRODUTO */}
           <div className="p-8 md:p-10 flex flex-col justify-center">
-            <span className="text-sm font-semibold text-gray-500 uppercase tracking-widest">
-              Coleção Casual
-            </span>
-
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-3">
-              Tênis Knu
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">
+              Tênis Knu Skool Stacklite Black White
             </h1>
 
-            <div className="flex items-center gap-2 mt-4">
-              <span className="text-yellow-500 text-lg">★★★★★</span>
+            <div className="flex items-center gap-2 mb-5">
+              <span className="text-yellow-500">★★★★★</span>
               <span className="text-sm text-gray-500">
-                (128 avaliações)
+                (Avaliações de clientes)
               </span>
             </div>
 
-            <p className="text-gray-600 leading-7 mt-6">
-              Um tênis moderno que combina estilo, conforto e
-              personalidade. Ideal para o dia a dia, passeios e
-              composições urbanas. Seu design versátil combina
-              com diferentes estilos e ocasiões.
+            <p className="text-gray-600 leading-relaxed mb-6">
+              Um clássico com personalidade. O Tênis Knu combina estilo
+              urbano e conforto para completar seu visual no dia a dia.
             </p>
 
-            <div className="mt-6">
-              <p className="text-sm text-gray-500">Preço</p>
+            <p className="text-3xl font-bold text-gray-900 mb-6">
+              R$ 699,90
+            </p>
 
-              <div className="flex items-center gap-3 mt-1">
-                <span className="text-3xl font-bold text-gray-900">
-                  R$ 699,90
-                </span>
-
-                {/*<span className="text-sm text-gray-400 line-through">
-                  ou 6x de R$116,66 s/juros
-                </span>
-                </div>*/}
-
-              <p className="text-sm text-green-600 mt-2">
-                Em até 6x sem juros
+            {/* TAMANHOS */}
+            <div className="mb-6">
+              <p className="font-semibold text-gray-800 mb-3">
+                Tamanho
               </p>
-            </div>
-
-            {/* Seleção de tamanho */}
-            <div className="mt-7">
-              <h2 className="font-semibold text-gray-800 mb-3">
-                Selecione o tamanho:
-              </h2>
 
               <div className="flex flex-wrap gap-3">
                 {[38, 39, 40, 41, 42, 43].map((tamanho) => (
                   <button
+                    type="button"
                     key={tamanho}
-                    className="border border-gray-300 rounded-lg px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-colors"
+                    onClick={() => setTamanhoSelecionado(tamanho)}
+                    aria-pressed={tamanhoSelecionado === tamanho}
+                    className={`border rounded-lg px-4 py-2 transition ${
+                      tamanhoSelecionado === tamanho
+                        ? "border-black bg-black text-white"
+                        : "border-gray-300 hover:border-black hover:bg-black hover:text-white"
+                    }`}
                   >
                     {tamanho}
                   </button>
@@ -135,24 +220,20 @@ export default function Knu() {
               </div>
             </div>
 
-            {/* Botões de compra */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-8">
-              <button className="flex-1 bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
-                Comprar agora
-              </button>
+            {/* COMPRAR AGORA */}
+            <button
+              type="button"
+              onClick={comprarAgora}
+              className="w-full bg-black text-white py-4 rounded-xl
+              font-semibold hover:bg-gray-800 transition mb-3"
+            >
+              Comprar agora
+            </button>
 
-              <button className="flex-1 border border-gray-300 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
-                Adicionar ao carrinho
-              </button>
+            <div className="mt-6 space-y-2 text-sm text-gray-500">
+              <p>✓ Consulte as opções de entrega disponíveis.</p>
+              <p>✓ Compra segura.</p>
             </div>
-
-            <p className="text-sm text-gray-500 mt-5">
-              🚚 Entrega para todo o Brasil
-            </p>
-
-            <p className="text-sm text-gray-500 mt-2">
-              🔒 Compra segura e pagamento protegido
-            </p>
           </div>
         </div>
       </div>
