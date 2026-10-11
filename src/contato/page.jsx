@@ -3,11 +3,11 @@ export default function Contato() {
       <section className="max-w-5xl mx-auto px-8 py-20">
   
         <h1 className="text-4xl font-bold mb-8">
-          Camisetas
+          Contato
         </h1>
   
         <p className="text-gray-600">
-          Conheca mais camisetas.
+          eu tenho que editar isso logo.
         </p>
   
       </section>

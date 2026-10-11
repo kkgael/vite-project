@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
+
+import { Link, useNavigate } from "react-router-dom";
 import { useCarrinho } from "./context/CarrinhoContext";
 
 function Layout({ children }) {
+  const navigate = useNavigate();
+
   const {
     quantidadeTotal,
     valorTotal,
@@ -10,28 +13,31 @@ function Layout({ children }) {
     miniCarrinhoAberto,
     removerProduto,
     excluirProduto,
+    adicionarProduto,
   } = useCarrinho();
 
   return (
     <>
       {/* CABEÇALHO */}
       <header className="border-b bg-white">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-8 py-5">
-          <Link to="/" className="text-2xl font-bold tracking-widest">
-            YEUX
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-5">
+          <Link to="/" className="text-2xl font-bold tracking-normal">
+            <span className="font-yeux inline-block scale-[2.5] tracking-normal">
+              yeux
+            </span>
           </Link>
 
-          <nav className="flex items-center gap-8 text-sm uppercase font-medium">
-            <Link to="/" className="hover:text-gray-500 transition">
-              Início
+          <nav className="flex items-center gap-8 text-sm font-medium uppercase">
+            <Link to="/" className="transition hover:text-gray-500">
+              <span className="font-vans">Início</span>
             </Link>
 
-            <Link to="/Sobre" className="hover:text-gray-500 transition">
-              Sobre
+            <Link to="/about" className="transition hover:text-gray-500">
+              <span className="font-vans">Sobre</span>
             </Link>
 
-            <Link to="/Contato" className="hover:text-gray-500 transition">
-              Contato
+            <Link to="/Contato" className="transition hover:text-gray-500">
+              <span className="font-vans">Contato</span>
             </Link>
 
             {/* BOTÃO DO CARRINHO */}
@@ -59,9 +65,7 @@ function Layout({ children }) {
 
               {quantidadeTotal > 0 && (
                 <span
-                  className="absolute -right-2 -top-2 flex h-5 min-w-5
-                  items-center justify-center rounded-full bg-red-600 px-1
-                  text-xs font-bold text-white"
+                  className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white"
                 >
                   {quantidadeTotal > 99 ? "99+" : quantidadeTotal}
                 </span>
@@ -85,15 +89,12 @@ function Layout({ children }) {
             role="dialog"
             aria-modal="true"
             aria-label="Mini carrinho"
-            className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md
-            flex-col bg-white shadow-2xl"
+            className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
           >
             {/* CABEÇALHO DO PAINEL */}
             <div className="flex items-center justify-between border-b px-6 py-5">
               <div>
-                <h2 className="text-xl font-bold">
-                  Seu carrinho
-                </h2>
+                <h2 className="text-xl font-bold">Seu carrinho</h2>
 
                 <p className="mt-1 text-sm text-gray-500">
                   {quantidadeTotal}{" "}
@@ -105,8 +106,7 @@ function Layout({ children }) {
                 type="button"
                 onClick={() => setMiniCarrinhoAberto(false)}
                 aria-label="Fechar carrinho"
-                className="flex h-9 w-9 items-center justify-center
-                rounded-full text-2xl hover:bg-gray-100"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-2xl hover:bg-gray-100"
               >
                 ×
               </button>
@@ -136,9 +136,7 @@ function Layout({ children }) {
                       className="flex justify-between gap-4 border-b pb-5"
                     >
                       <div className="min-w-0">
-                        <h3 className="font-semibold">
-                          {item.nome}
-                        </h3>
+                        <h3 className="font-semibold">{item.nome}</h3>
 
                         <p className="mt-2 text-sm text-gray-500">
                           Quantidade: {item.quantidade}
@@ -152,12 +150,13 @@ function Layout({ children }) {
                           por unidade
                         </p>
 
+                        {/* CONTROLES DE QUANTIDADE */}
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           <button
                             type="button"
                             onClick={() => removerProduto(item.id)}
-                            className="rounded border px-3 py-1 text-sm
-                            hover:bg-gray-100"
+                            className="rounded border px-3 py-1 text-sm hover:bg-gray-100"
+                            aria-label={`Diminuir quantidade de ${item.nome}`}
                           >
                             −
                           </button>
@@ -168,21 +167,15 @@ function Layout({ children }) {
 
                           <button
                             type="button"
-                            onClick={() => {
-                              const produto = {
+                            onClick={() =>
+                              adicionarProduto({
                                 id: item.id,
                                 nome: item.nome,
                                 preco: item.preco,
-                              };
-
-                              useCarrinho;
-                              // A quantidade é incrementada pelo contexto.
-                              // O botão é ligado abaixo pelo próprio contexto.
-                            }}
-                            className="rounded border px-3 py-1 text-sm
-                            hover:bg-gray-100"
-                            disabled
-                            title="Adicionar outra unidade em breve"
+                              })
+                            }
+                            className="rounded border px-3 py-1 text-sm hover:bg-gray-100"
+                            aria-label={`Aumentar quantidade de ${item.nome}`}
                           >
                             +
                           </button>
@@ -228,12 +221,11 @@ function Layout({ children }) {
               <button
                 type="button"
                 onClick={() => {
-                  alert("A finalização da compra ainda não foi implementada.");
+                  setMiniCarrinhoAberto(false);
+                  navigate("/checkout");
                 }}
                 disabled={itens.length === 0}
-                className="w-full rounded-xl bg-black py-4 font-semibold
-                text-white transition hover:bg-gray-800
-                disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full rounded-xl bg-black py-4 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Finalizar compra
               </button>
@@ -241,8 +233,7 @@ function Layout({ children }) {
               <button
                 type="button"
                 onClick={() => setMiniCarrinhoAberto(false)}
-                className="mt-3 w-full rounded-xl border border-black
-                py-3 font-semibold transition hover:bg-gray-100"
+                className="mt-3 w-full rounded-xl border border-black py-3 font-semibold transition hover:bg-gray-100"
               >
                 Continuar comprando
               </button>
@@ -255,9 +246,13 @@ function Layout({ children }) {
       <main>{children}</main>
 
       {/* RODAPÉ DO SITE */}
-      <footer className="border-t mt-20">
-        <div className="max-w-6xl mx-auto py-6 text-center text-gray-500 text-sm">
-          © 2026 Yeux S.A.
+      <footer className="mt-20 border-t">
+        <div className="mx-auto max-w-6xl py-6 text-center text-sm text-gray-500">
+          © 2026⠀
+          <span className="font-yeux inline-block scale-[1.7]">
+            yeux
+          </span>
+          ⁣⁣⁣⁣⁣⁣ ⠀S.A.
         </div>
       </footer>
     </>

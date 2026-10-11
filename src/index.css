@@ -25,3 +25,30 @@
   aspect-ratio: 1 / 1;
   object-fit: contain;
 }
+
+@font-face {
+  font-family: "Mostwasted";
+  src: url("./assets/Mostwasted.ttf") format("truetype");
+}
+
+.font-yeux {
+  font-family: "Mostwasted", sans-serif;
+}
+
+@font-face {
+  font-family: "Bape";
+  src: url("./assets/bape.ttf") format("truetype");
+}
+
+.font-bape {
+  font-family: "Bape", sans-serif;
+}
+
+@font-face {
+  font-family: "Fann Doren";
+  src: url("./assets/vans.ttf") format("truetype");
+}
+
+.font-vans {
+  font-family: "Fann Doren", sans-serif;
+}
