@@ -7,9 +7,9 @@ export default function Contato() {
         </h1>
   
         <p className="text-gray-600">
-          eu tenho que editar isso logo.
+          SAC: (91) 9222-6945 (atendente Manuella)<br></br>
+          E-mail: sac@tesyeux.com
         </p>
-  
       </section>
     );
   }
